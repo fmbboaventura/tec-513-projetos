@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Efeito Estroboscópico</title>
+    <script type="text/javascript">
+      var samplFreq = 0;
+      var samplIntervalId = -1;
+
+      function setFrequency() {
+        var input = document.getElementById('freq');
+        var fan = document.getElementById('fan');
+        fan.style.animationDuration = (1000/input.value) + "ms";
+      }
+
+      function setSampleFrequency() {
+        // para o interval atual
+        if (samplIntervalId != -1) clearInterval(samplIntervalId);
+
+        // seta um novo interval com o valor do input
+        var input = document.getElementById('samplFreq');
+        samplIntervalId = setInterval('sample()', (1000/input.value));
+      }
+
+      function getRotation(elid) {
+        var el = document.getElementById(elid);
+        var st = window.getComputedStyle(el, null);
+        var tr = st.getPropertyValue("-webkit-transform") ||
+             st.getPropertyValue("-moz-transform") ||
+             st.getPropertyValue("-ms-transform") ||
+             st.getPropertyValue("-o-transform") ||
+             st.getPropertyValue("transform") ||
+             "fail...";
+
+        if( tr !== "none") {
+          console.log('Matrix: ' + tr);
+
+          var values = tr.split('(')[1];
+            values = values.split(')')[0];
+            values = values.split(',');
+          var a = values[0];
+          var b = values[1];
+          var c = values[2];
+          var d = values[3];
+
+          var scale = Math.sqrt(a*a + b*b);
+
+          // First option, don't check for negative result
+          // Second, check for the negative result
+          /** /
+          var radians = Math.atan2(b, a);
+          var angle = Math.round( radians * (180/Math.PI));
+          /*/
+          var radians = Math.atan2(b, a);
+          if ( radians < 0 ) {
+            radians += (2 * Math.PI);
+          }
+          var angle = Math.round( radians * (180/Math.PI));
+          /**/
+
+        } else {
+          var angle = 0;
+        }
+
+        // works!
+        console.log('Rotate: ' + angle + 'deg');
+        return angle;
+        //$('#results').append('<p>Rotate: ' + angle + 'deg</p>');
+      }
+
+      function setRotation(elem, degrees) {
+        if(navigator.userAgent.match("Chrome")){
+      		elem.style.WebkitTransform = "rotate("+degrees+"deg)";
+      	} else if(navigator.userAgent.match("Firefox")){
+      		elem.style.MozTransform = "rotate("+degrees+"deg)";
+      	} else if(navigator.userAgent.match("MSIE")){
+      		elem.style.msTransform = "rotate("+degrees+"deg)";
+      	} else if(navigator.userAgent.match("Opera")){
+      		elem.style.OTransform = "rotate("+degrees+"deg)";
+      	} else {
+      		elem.style.transform = "rotate("+degrees+"deg)";
+      	}
+      }
+
+      // Pega o angulo atual do fan e seta na amostra
+      function sample() {
+        var angle = getRotation('fan');
+        console.log("Rotacao: " + angle);
+        setRotation(document.getElementById('sample'), angle);
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Efeito Estroboscópico</h1> <br>
+
+    Frequência (Hz):
+    <input type="number" id="freq" min="1" max="1000" value=1 onchange="setFrequency()"> <br>
+    <div id="fan" class="circle circle-rotating">
+      <div class="line"></div>
+    </div> <br>
+
+    Frequência de Amostragem(Hz):
+    <input type="number" id="samplFreq" min="1" max="1000" value=0 onchange="setSampleFrequency()"> <br>
+    <div id="sample" class="circle">
+      <div class="line"></div>
+    </div>
+
+    <h2 style="width:200px;" id="status"></h2>
+  </body>
+  <style media="screen">
+    .circle{
+      height: 130px;
+      width: 130px;
+      border-style: solid;
+      border-radius: 50%;
+    }
+    .circle-rotating{
+      animation: spin 1000ms linear infinite;
+    }
+    .line{
+      margin: 0 auto;
+      height: 65px;
+      width: 10px;
+      background-color: #ff0000;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</html>
